@@ -17,7 +17,7 @@ namespace AnimeGet
             new Dictionary<string, string>() { 
             { "Naruto & Naruto Shippuden Episodes English Dubbed", "http://www.naruget.com/cat/4-english-dubbed/" }, 
             { "Naruto & Naruto Shippuden Episodes", "http://www.naruget.com/" } ,
-            { "Dragonball Z Episodes", "http://www.dbz.tv/watch-dragonball-z-episodes-dubbed-online/"},
+            { "Dragonball Z English Dubbed", "http://www.dbz.tv/watch-dragonball-z-episodes-dubbed-online/"},
             { "Bleach English Dubbed", "http://www.bleachget.com/page/bleach-episodes-english-dubbed/"},
             { "One Piece English Dubbed", "http://www.watchop.eu/page/one-piece-episodes-english-dubbed/"}
         };
