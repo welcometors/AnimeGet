@@ -8,12 +8,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using HAP = HtmlAgilityPack;
+using OpenQA.Selenium.PhantomJS;
 
 namespace AnimeGet
 {
     public partial class frmMain : Form
     {
-        public static IDictionary<string, string> series = 
+        private PhantomJSDriver _driver;
+
+        private static IDictionary<string, string> series = 
             new Dictionary<string, string>() { 
             { "Naruto & Naruto Shippuden Episodes English Dubbed", "http://www.naruget.com/cat/4-english-dubbed/" }, 
             { "Naruto & Naruto Shippuden Episodes", "http://www.naruget.com/" } ,
@@ -30,6 +33,17 @@ namespace AnimeGet
         private void frmMain_Load(object sender, EventArgs e)
         {
             cbSeries.Items.AddRange(series.Keys.ToArray());
+            cbSeries.SelectedIndex = 0;
+            _driver = new PhantomJSDriver();
+        }
+
+        private void frmMain_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (_driver != null)
+            {
+                _driver.Quit();
+                _driver.Dispose();
+            }
         }
 
         private void cbSeries_SelectedIndexChanged(object sender, EventArgs e)
@@ -56,18 +70,46 @@ namespace AnimeGet
                 }
                 text += node.InnerHtml;
             }
-            
+        }
+
+        private string getVideoUrl(string mainUrl)
+        {
+            if (_driver != null) 
+            {
+                _driver.Navigate().GoToUrl(mainUrl);
+                return _driver.FindElementById("embedcode").FindElement(OpenQA.Selenium.By.TagName("iframe")).GetAttribute("src");
+            }
+
+            return "";
         }
 
         private void dgvVideos_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.ColumnIndex == 0 && dgvVideos.Rows[e.RowIndex].Cells["dgvcVideo"].Value.ToString() == "")
             {
-                string url = dgvVideos.Rows[e.RowIndex].Cells["dgvcUrl"].Value.ToString();
+                dgvVideos.Rows[e.RowIndex].Cells["dgvcStatus"].Value = "Detecting...";
+                dgvVideos.Update();
+                dgvVideos.Refresh();
+
+                string episodeUrl = dgvVideos.Rows[e.RowIndex].Cells["dgvcUrl"].Value.ToString();
+                //dgvVideos.Rows[e.RowIndex].Cells["dgvcVideo"].Value = getVideoUrl(episodeUrl);
+                string pageUrl = getVideoUrl(episodeUrl);
                 var web = new HAP.HtmlWeb();
-                var doc = web.Load(url);
-                dgvVideos.Rows[e.RowIndex].Cells["dgvcVideo"].Value = doc.DocumentNode.OuterHtml.Contains("FlashDetect.installed");
-                //MessageBox.Show(doc.DocumentNode.SelectSingleNode("//iframe"));
+                var doc = web.Load(pageUrl);
+
+                foreach (var node in doc.DocumentNode.SelectSingleNode("//body").ChildNodes)
+                {
+                    if ( node.Name == "script" && node.InnerHtml.Contains("if(!FlashDetect.installed)"))
+                    {
+                        string searchString = "<source src=\"";
+                        var startIdx = node.InnerHtml.IndexOf(searchString);
+                        var endIdx = node.InnerHtml.IndexOf("\"", startIdx + searchString.Length + 1);
+                        var videoUrlLength = endIdx - startIdx - searchString.Length;
+                        string videoUrl = node.InnerHtml.Substring(startIdx + searchString.Length, videoUrlLength);
+                        dgvVideos.Rows[e.RowIndex].Cells["dgvcVideo"].Value = videoUrl;
+                        dgvVideos.Rows[e.RowIndex].Cells["dgvcStatus"].Value = "Ready!";
+                    }
+                }
             }
         }
     }

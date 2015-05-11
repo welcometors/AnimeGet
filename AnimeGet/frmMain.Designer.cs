@@ -32,11 +32,11 @@
             this.cbSeries = new System.Windows.Forms.ComboBox();
             this.tbUrl = new System.Windows.Forms.TextBox();
             this.tlpMain = new System.Windows.Forms.TableLayoutPanel();
-            this.btnDownload = new System.Windows.Forms.Button();
-            this.btnFetch = new System.Windows.Forms.Button();
             this.dgvVideos = new System.Windows.Forms.DataGridView();
-            this.tbPath = new System.Windows.Forms.TextBox();
             this.tlpButtons = new System.Windows.Forms.TableLayoutPanel();
+            this.tbPath = new System.Windows.Forms.TextBox();
+            this.btnFetch = new System.Windows.Forms.Button();
+            this.btnDownload = new System.Windows.Forms.Button();
             this.btnBrowse = new System.Windows.Forms.Button();
             this.dgvcLinkSelected = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.dgvcTitle = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -99,27 +99,6 @@
             this.tlpMain.Size = new System.Drawing.Size(925, 542);
             this.tlpMain.TabIndex = 3;
             // 
-            // btnDownload
-            // 
-            this.btnDownload.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.btnDownload.Location = new System.Drawing.Point(78, 3);
-            this.btnDownload.Name = "btnDownload";
-            this.btnDownload.Size = new System.Drawing.Size(69, 23);
-            this.btnDownload.TabIndex = 1;
-            this.btnDownload.Text = "Download";
-            this.btnDownload.UseVisualStyleBackColor = true;
-            // 
-            // btnFetch
-            // 
-            this.btnFetch.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.btnFetch.Location = new System.Drawing.Point(3, 3);
-            this.btnFetch.Name = "btnFetch";
-            this.btnFetch.Size = new System.Drawing.Size(69, 23);
-            this.btnFetch.TabIndex = 0;
-            this.btnFetch.Text = "Fetch";
-            this.btnFetch.UseVisualStyleBackColor = true;
-            this.btnFetch.Click += new System.EventHandler(this.btnFetch_Click);
-            // 
             // dgvVideos
             // 
             this.dgvVideos.AllowUserToAddRows = false;
@@ -137,15 +116,6 @@
             this.dgvVideos.Size = new System.Drawing.Size(919, 421);
             this.dgvVideos.TabIndex = 4;
             this.dgvVideos.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvVideos_CellContentClick);
-            // 
-            // tbPath
-            // 
-            this.tbPath.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tbPath.Location = new System.Drawing.Point(153, 3);
-            this.tbPath.Name = "tbPath";
-            this.tbPath.Size = new System.Drawing.Size(688, 20);
-            this.tbPath.TabIndex = 2;
-            this.tbPath.Text = "D:\\TV\\Anime";
             // 
             // tlpButtons
             // 
@@ -165,6 +135,36 @@
             this.tlpButtons.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tlpButtons.Size = new System.Drawing.Size(919, 29);
             this.tlpButtons.TabIndex = 6;
+            // 
+            // tbPath
+            // 
+            this.tbPath.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tbPath.Location = new System.Drawing.Point(153, 3);
+            this.tbPath.Name = "tbPath";
+            this.tbPath.Size = new System.Drawing.Size(688, 20);
+            this.tbPath.TabIndex = 2;
+            this.tbPath.Text = "D:\\TV\\Anime";
+            // 
+            // btnFetch
+            // 
+            this.btnFetch.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.btnFetch.Location = new System.Drawing.Point(3, 3);
+            this.btnFetch.Name = "btnFetch";
+            this.btnFetch.Size = new System.Drawing.Size(69, 23);
+            this.btnFetch.TabIndex = 0;
+            this.btnFetch.Text = "Fetch";
+            this.btnFetch.UseVisualStyleBackColor = true;
+            this.btnFetch.Click += new System.EventHandler(this.btnFetch_Click);
+            // 
+            // btnDownload
+            // 
+            this.btnDownload.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.btnDownload.Location = new System.Drawing.Point(78, 3);
+            this.btnDownload.Name = "btnDownload";
+            this.btnDownload.Size = new System.Drawing.Size(69, 23);
+            this.btnDownload.TabIndex = 1;
+            this.btnDownload.Text = "Download";
+            this.btnDownload.UseVisualStyleBackColor = true;
             // 
             // btnBrowse
             // 
@@ -198,7 +198,7 @@
             this.dgvcType.Items.AddRange(new object[] {
             "Default"});
             this.dgvcType.Name = "dgvcType";
-            this.dgvcType.Width = 150;
+            this.dgvcType.Width = 120;
             // 
             // dgvcStatus
             // 
@@ -206,7 +206,7 @@
             this.dgvcStatus.HeaderText = "Status";
             this.dgvcStatus.Name = "dgvcStatus";
             this.dgvcStatus.ReadOnly = true;
-            this.dgvcStatus.Width = 60;
+            this.dgvcStatus.Width = 80;
             // 
             // dgvcUrl
             // 
