@@ -33,17 +33,17 @@
             this.tbUrl = new System.Windows.Forms.TextBox();
             this.tlpMain = new System.Windows.Forms.TableLayoutPanel();
             this.dgvVideos = new System.Windows.Forms.DataGridView();
-            this.tlpButtons = new System.Windows.Forms.TableLayoutPanel();
-            this.tbPath = new System.Windows.Forms.TextBox();
-            this.btnFetch = new System.Windows.Forms.Button();
-            this.btnDownload = new System.Windows.Forms.Button();
-            this.btnBrowse = new System.Windows.Forms.Button();
             this.dgvcLinkSelected = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.dgvcTitle = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dgvcType = new System.Windows.Forms.DataGridViewComboBoxColumn();
             this.dgvcStatus = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dgvcUrl = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dgvcVideo = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.tlpButtons = new System.Windows.Forms.TableLayoutPanel();
+            this.tbPath = new System.Windows.Forms.TextBox();
+            this.btnFetch = new System.Windows.Forms.Button();
+            this.btnDownload = new System.Windows.Forms.Button();
+            this.btnBrowse = new System.Windows.Forms.Button();
             this.tlpMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvVideos)).BeginInit();
             this.tlpButtons.SuspendLayout();
@@ -116,6 +116,51 @@
             this.dgvVideos.Size = new System.Drawing.Size(919, 421);
             this.dgvVideos.TabIndex = 4;
             this.dgvVideos.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvVideos_CellContentClick);
+            this.dgvVideos.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvVideos_CellValueChanged);
+            // 
+            // dgvcLinkSelected
+            // 
+            this.dgvcLinkSelected.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.dgvcLinkSelected.Frozen = true;
+            this.dgvcLinkSelected.HeaderText = "Select";
+            this.dgvcLinkSelected.Name = "dgvcLinkSelected";
+            this.dgvcLinkSelected.Width = 20;
+            // 
+            // dgvcTitle
+            // 
+            this.dgvcTitle.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.dgvcTitle.HeaderText = "Title";
+            this.dgvcTitle.Name = "dgvcTitle";
+            // 
+            // dgvcType
+            // 
+            this.dgvcType.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.dgvcType.FillWeight = 191.453F;
+            this.dgvcType.HeaderText = "Type";
+            this.dgvcType.Name = "dgvcType";
+            this.dgvcType.Width = 120;
+            // 
+            // dgvcStatus
+            // 
+            this.dgvcStatus.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.dgvcStatus.HeaderText = "Status";
+            this.dgvcStatus.Name = "dgvcStatus";
+            this.dgvcStatus.ReadOnly = true;
+            this.dgvcStatus.Width = 80;
+            // 
+            // dgvcUrl
+            // 
+            this.dgvcUrl.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.dgvcUrl.HeaderText = "URL";
+            this.dgvcUrl.Name = "dgvcUrl";
+            this.dgvcUrl.ReadOnly = true;
+            // 
+            // dgvcVideo
+            // 
+            this.dgvcVideo.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.dgvcVideo.HeaderText = "Video";
+            this.dgvcVideo.Name = "dgvcVideo";
+            this.dgvcVideo.ReadOnly = true;
             // 
             // tlpButtons
             // 
@@ -175,52 +220,6 @@
             this.btnBrowse.TabIndex = 3;
             this.btnBrowse.Text = "Browse...";
             this.btnBrowse.UseVisualStyleBackColor = true;
-            // 
-            // dgvcLinkSelected
-            // 
-            this.dgvcLinkSelected.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.dgvcLinkSelected.Frozen = true;
-            this.dgvcLinkSelected.HeaderText = "Select";
-            this.dgvcLinkSelected.Name = "dgvcLinkSelected";
-            this.dgvcLinkSelected.Width = 20;
-            // 
-            // dgvcTitle
-            // 
-            this.dgvcTitle.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.dgvcTitle.HeaderText = "Title";
-            this.dgvcTitle.Name = "dgvcTitle";
-            // 
-            // dgvcType
-            // 
-            this.dgvcType.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.dgvcType.FillWeight = 191.453F;
-            this.dgvcType.HeaderText = "Type";
-            this.dgvcType.Items.AddRange(new object[] {
-            "Default"});
-            this.dgvcType.Name = "dgvcType";
-            this.dgvcType.Width = 120;
-            // 
-            // dgvcStatus
-            // 
-            this.dgvcStatus.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.dgvcStatus.HeaderText = "Status";
-            this.dgvcStatus.Name = "dgvcStatus";
-            this.dgvcStatus.ReadOnly = true;
-            this.dgvcStatus.Width = 80;
-            // 
-            // dgvcUrl
-            // 
-            this.dgvcUrl.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.dgvcUrl.HeaderText = "URL";
-            this.dgvcUrl.Name = "dgvcUrl";
-            this.dgvcUrl.ReadOnly = true;
-            // 
-            // dgvcVideo
-            // 
-            this.dgvcVideo.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.dgvcVideo.HeaderText = "Video";
-            this.dgvcVideo.Name = "dgvcVideo";
-            this.dgvcVideo.ReadOnly = true;
             // 
             // frmMain
             // 
