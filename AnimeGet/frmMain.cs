@@ -1,11 +1,14 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using HAP = HtmlAgilityPack;
@@ -23,9 +26,13 @@ namespace AnimeGet
             { "One Piece English Dubbed", "http://www.watchop.eu/page/one-piece-episodes-english-dubbed/"}
         };
 
+        private ConcurrentQueue<int> _downloadQueue;
+        private int currentDownloadindex = -1;
+
         public frmMain()
         {
             InitializeComponent();
+            _downloadQueue = new ConcurrentQueue<int>();
         }
 
         private void frmMain_Load(object sender, EventArgs e)
@@ -58,7 +65,7 @@ namespace AnimeGet
                     && node.Attributes["class"].Value == "movie"
                     && node.Attributes["href"].Value.Contains(hosturi))
                 {
-                    dgvVideos.Rows.Add(false, node.ParentNode.InnerText, null, "-", node.Attributes["href"].Value, "");
+                    dgvVideos.Rows.Add(false, node.ParentNode.InnerText, null, "-", "[]", node.Attributes["href"].Value, "");
                 }
                 text += node.InnerHtml;
             }
@@ -103,7 +110,7 @@ namespace AnimeGet
 
         private void dgvVideos_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex == 0 && dgvVideos.Rows[e.RowIndex].Cells["dgvcVideo"].Value.ToString() == "")
+            if (dgvVideos.Columns[e.ColumnIndex].Name == "dgvcLinkSelected" && dgvVideos.Rows[e.RowIndex].Cells["dgvcVideo"].Value.ToString() == "")
             {
                 dgvVideos.Rows[e.RowIndex].Cells["dgvcStatus"].Value = "Detecting...";
                 dgvVideos.Update();
@@ -111,6 +118,15 @@ namespace AnimeGet
 
                 string episodeUrl = dgvVideos.Rows[e.RowIndex].Cells["dgvcUrl"].Value.ToString();
                 populateVideoTypes(e.RowIndex, getVideoUrls(episodeUrl));
+            }
+            else
+            if (dgvVideos.Columns[e.ColumnIndex].Name == "dgvcDownload" && dgvVideos.Rows[e.RowIndex].Cells["dgvcDownload"].Value.ToString() == ">")
+            {
+                dgvVideos.Rows[e.RowIndex].Cells["dgvcDownload"].Value = "||";
+                dgvVideos.Rows[e.RowIndex].Cells["dgvcStatus"].Value = "Queued";
+                dgvVideos.Update();
+                dgvVideos.Refresh();
+                _downloadQueue.Enqueue(e.RowIndex);
             }
         }
 
@@ -137,8 +153,63 @@ namespace AnimeGet
                         string videoUrl = node.InnerHtml.Substring(startIdx + searchString.Length, videoUrlLength);
                         dgvVideos.Rows[e.RowIndex].Cells["dgvcVideo"].Value = videoUrl;
                         dgvVideos.Rows[e.RowIndex].Cells["dgvcStatus"].Value = "Ready!";
+                        dgvVideos.Rows[e.RowIndex].Cells["dgvcDownload"].Value = ">";
                     }
                 }
+            }
+        }
+
+        void myWebClient_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        {
+            if( currentDownloadindex != -1)
+                dgvVideos.Rows[currentDownloadindex].Cells["dgvcStatus"].Value = e.ProgressPercentage.ToString() + "%";
+        }
+
+        void myWebClient_DownloadDataCompleted(object sender, AsyncCompletedEventArgs e)
+        {
+            if (currentDownloadindex != -1)
+            {
+                dgvVideos.Rows[currentDownloadindex].Cells["dgvcStatus"].Value = "Done!";
+                dgvVideos.Rows[currentDownloadindex].Cells["dgvcDownload"].Value = ">";
+                currentDownloadindex = -1;
+            }
+        }
+
+        private void tmrDownloader_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                tmrDownloader.Stop();
+                if (currentDownloadindex == -1 && !_downloadQueue.IsEmpty)
+                {
+                    int idx = 0;
+                    if (_downloadQueue.TryDequeue(out idx))
+                    {
+                        dgvVideos.Rows[idx].Cells["dgvcStatus"].Value = "Starting...";
+
+                        Uri url = new Uri(dgvVideos.Rows[idx].Cells["dgvcVideo"].Value.ToString());
+                        string fileName = Regex.Replace(dgvVideos.Rows[idx].Cells["dgvcTitle"].Value.ToString().Trim(), "[^a-zA-Z0-9 ]+", "", RegexOptions.Compiled);
+                        string filePath = string.Format("{0}\\{1}.mp4", tbPath.Text, fileName);
+
+                        WebClient myWebClient = new WebClient();
+                        myWebClient.DownloadFileCompleted +=
+                            new AsyncCompletedEventHandler(myWebClient_DownloadDataCompleted);
+                        myWebClient.DownloadProgressChanged +=
+                            new DownloadProgressChangedEventHandler(myWebClient_DownloadProgressChanged);
+
+                        //if (File.Exists(filePath) == false)
+                        //{
+                        //    Directory.CreateDirectory(filePath.Substring(0, filePath.LastIndexOf("\\")));
+                        myWebClient.DownloadFileAsync(url, filePath);
+                        //}
+
+                        currentDownloadindex = idx;
+                    }
+                }
+            }
+            finally
+            {
+                tmrDownloader.Start();
             }
         }
     }
