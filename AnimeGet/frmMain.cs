@@ -27,7 +27,8 @@ namespace AnimeGet
         };
 
         private ConcurrentQueue<int> _downloadQueue;
-        private int currentDownloadindex = -1;
+        private const int MaxParallelDownloads = 4;
+        private int currentlyDownloading = 0;
 
         public frmMain()
         {
@@ -161,17 +162,23 @@ namespace AnimeGet
 
         void myWebClient_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
-            if( currentDownloadindex != -1)
-                dgvVideos.Rows[currentDownloadindex].Cells["dgvcStatus"].Value = e.ProgressPercentage.ToString() + "%";
+            WebClient myWebClient = sender as WebClient;
+            int idx = 0;
+            if (int.TryParse(myWebClient.QueryString["index"], out idx))
+            {
+                dgvVideos.Rows[idx].Cells["dgvcStatus"].Value = e.ProgressPercentage.ToString() + "%";
+            }
         }
 
         void myWebClient_DownloadDataCompleted(object sender, AsyncCompletedEventArgs e)
         {
-            if (currentDownloadindex != -1)
+            WebClient myWebClient = sender as WebClient;
+            int idx = 0;
+            if (int.TryParse(myWebClient.QueryString["index"], out idx))
             {
-                dgvVideos.Rows[currentDownloadindex].Cells["dgvcStatus"].Value = "Done!";
-                dgvVideos.Rows[currentDownloadindex].Cells["dgvcDownload"].Value = ">";
-                currentDownloadindex = -1;
+                dgvVideos.Rows[idx].Cells["dgvcStatus"].Value = "Done!";
+                dgvVideos.Rows[idx].Cells["dgvcDownload"].Value = ">";
+                currentlyDownloading--;
             }
         }
 
@@ -180,7 +187,7 @@ namespace AnimeGet
             try
             {
                 tmrDownloader.Stop();
-                if (currentDownloadindex == -1 && !_downloadQueue.IsEmpty)
+                if (currentlyDownloading < MaxParallelDownloads && !_downloadQueue.IsEmpty)
                 {
                     int idx = 0;
                     if (_downloadQueue.TryDequeue(out idx))
@@ -192,6 +199,7 @@ namespace AnimeGet
                         string filePath = string.Format("{0}\\{1}.mp4", tbPath.Text, fileName);
 
                         WebClient myWebClient = new WebClient();
+                        myWebClient.QueryString = new System.Collections.Specialized.NameValueCollection() { { "index", idx.ToString() } };
                         myWebClient.DownloadFileCompleted +=
                             new AsyncCompletedEventHandler(myWebClient_DownloadDataCompleted);
                         myWebClient.DownloadProgressChanged +=
@@ -203,7 +211,7 @@ namespace AnimeGet
                         myWebClient.DownloadFileAsync(url, filePath);
                         //}
 
-                        currentDownloadindex = idx;
+                        currentlyDownloading++;
                     }
                 }
             }
