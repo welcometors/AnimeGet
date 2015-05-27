@@ -49,6 +49,8 @@
             this.btnAbout = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.tmrDownloader = new System.Windows.Forms.Timer(this.components);
+            this.tmrFetcher = new System.Windows.Forms.Timer(this.components);
+            this.tmrDetector = new System.Windows.Forms.Timer(this.components);
             this.tlpMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvVideos)).BeginInit();
             this.tlpButtons.SuspendLayout();
@@ -101,7 +103,7 @@
             this.tlpMain.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
             this.tlpMain.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 35F));
             this.tlpMain.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tlpMain.Size = new System.Drawing.Size(748, 504);
+            this.tlpMain.Size = new System.Drawing.Size(748, 550);
             this.tlpMain.TabIndex = 3;
             // 
             // dgvVideos
@@ -119,7 +121,7 @@
             this.dgvVideos.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgvVideos.Location = new System.Drawing.Point(3, 118);
             this.dgvVideos.Name = "dgvVideos";
-            this.dgvVideos.Size = new System.Drawing.Size(742, 421);
+            this.dgvVideos.Size = new System.Drawing.Size(742, 429);
             this.dgvVideos.TabIndex = 4;
             this.dgvVideos.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvVideos_CellContentClick);
             this.dgvVideos.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvVideos_CellValueChanged);
@@ -261,14 +263,23 @@
             // tmrDownloader
             // 
             this.tmrDownloader.Enabled = true;
-            this.tmrDownloader.Interval = 1000;
             this.tmrDownloader.Tick += new System.EventHandler(this.tmrDownloader_Tick);
+            // 
+            // tmrFetcher
+            // 
+            this.tmrFetcher.Enabled = true;
+            this.tmrFetcher.Tick += new System.EventHandler(this.tmrFetcher_Tick);
+            // 
+            // tmrDetector
+            // 
+            this.tmrDetector.Enabled = true;
+            this.tmrDetector.Tick += new System.EventHandler(this.tmrDetector_Tick);
             // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(748, 504);
+            this.ClientSize = new System.Drawing.Size(748, 550);
             this.Controls.Add(this.tlpMain);
             this.Name = "frmMain";
             this.Text = "Anime Downloader";
@@ -304,6 +315,8 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn dgvcVideo;
         private System.Windows.Forms.Button btnSettings;
         private System.Windows.Forms.Timer tmrDownloader;
+        private System.Windows.Forms.Timer tmrFetcher;
+        private System.Windows.Forms.Timer tmrDetector;
     }
 }
 

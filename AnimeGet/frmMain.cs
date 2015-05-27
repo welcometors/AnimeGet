@@ -9,6 +9,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using HAP = HtmlAgilityPack;
@@ -27,6 +28,8 @@ namespace AnimeGet
         };
 
         private ConcurrentQueue<int> _downloadQueue;
+        private ConcurrentQueue<int> _detectorQueue;
+        private ConcurrentQueue<int> _fetcherQueue;
         private const int MaxParallelDownloads = 4;
         private int currentlyDownloading = 0;
 
@@ -34,6 +37,8 @@ namespace AnimeGet
         {
             InitializeComponent();
             _downloadQueue = new ConcurrentQueue<int>();
+            _detectorQueue = new ConcurrentQueue<int>();
+            _fetcherQueue = new ConcurrentQueue<int>();
         }
 
         private void frmMain_Load(object sender, EventArgs e)
@@ -51,25 +56,46 @@ namespace AnimeGet
             tbUrl.Text = series[cbSeries.Text];
         }
 
+        private void FillEpisodes(IEnumerable<Tuple<string, string>> episodes)
+        {
+            foreach (var epi in episodes)
+                dgvVideos.Rows.Add(false, epi.Item1, null, "-", "[]", epi.Item2, "");
+        }
+
         private void btnFetch_Click(object sender, EventArgs e)
         {
             dgvVideos.Rows.Clear();
             string url = tbUrl.Text;
-            var web = new HAP.HtmlWeb();
-            var doc = web.Load(url);
-            var hosturi = (new Uri(url)).Host;
-            
-            string text = "";
-            foreach (var node in doc.DocumentNode.SelectNodes("//a"))
+            btnFetch.Text = "Fetching...";
+
+            var urlReader = new BackgroundWorker() { WorkerSupportsCancellation = false, WorkerReportsProgress = false };
+
+            urlReader.DoWork += (senderObject, eventArgs) =>
             {
-                if (node.Attributes.Contains("href") && node.Attributes.Contains("class")
-                    && node.Attributes["class"].Value == "movie"
-                    && node.Attributes["href"].Value.Contains(hosturi))
+                var episodes = new List<Tuple<string, string>>();
+                var web = new HAP.HtmlWeb();
+                var doc = web.Load(url);
+                var hosturi = (new Uri(url)).Host;
+                foreach (var node in doc.DocumentNode.SelectNodes("//a"))
                 {
-                    dgvVideos.Rows.Add(false, node.ParentNode.InnerText, null, "-", "[]", node.Attributes["href"].Value, "");
+                    if (node.Attributes.Contains("href") && node.Attributes.Contains("class")
+                        && node.Attributes["class"].Value == "movie"
+                        && node.Attributes["href"].Value.Contains(hosturi))
+                    {
+                        episodes.Add(new Tuple<string, string>(node.ParentNode.InnerText, node.Attributes["href"].Value));
+                    }
                 }
-                text += node.InnerHtml;
-            }
+                eventArgs.Result = episodes;
+            };
+
+            urlReader.RunWorkerCompleted += (senderObject, eventArgs) =>
+            {
+                var episodes = eventArgs.Result as List<Tuple<string, string>>;
+                FillEpisodes(episodes);
+                btnFetch.Text = "Fetch!";
+            };
+
+            urlReader.RunWorkerAsync();
         }
 
         private IDictionary<string,string> getVideoUrls(string mainUrl)
@@ -114,19 +140,17 @@ namespace AnimeGet
             if (dgvVideos.Columns[e.ColumnIndex].Name == "dgvcLinkSelected" && dgvVideos.Rows[e.RowIndex].Cells["dgvcVideo"].Value.ToString() == "")
             {
                 dgvVideos.Rows[e.RowIndex].Cells["dgvcStatus"].Value = "Detecting...";
-                dgvVideos.Update();
-                dgvVideos.Refresh();
-
-                string episodeUrl = dgvVideos.Rows[e.RowIndex].Cells["dgvcUrl"].Value.ToString();
-                populateVideoTypes(e.RowIndex, getVideoUrls(episodeUrl));
+                //dgvVideos.Update();
+                //dgvVideos.Refresh();
+                _detectorQueue.Enqueue(e.RowIndex);
             }
             else
             if (dgvVideos.Columns[e.ColumnIndex].Name == "dgvcDownload" && dgvVideos.Rows[e.RowIndex].Cells["dgvcDownload"].Value.ToString() == ">")
             {
                 dgvVideos.Rows[e.RowIndex].Cells["dgvcDownload"].Value = "||";
                 dgvVideos.Rows[e.RowIndex].Cells["dgvcStatus"].Value = "Queued";
-                dgvVideos.Update();
-                dgvVideos.Refresh();
+                //dgvVideos.Update();
+                //dgvVideos.Refresh();
                 _downloadQueue.Enqueue(e.RowIndex);
             }
         }
@@ -136,27 +160,9 @@ namespace AnimeGet
             if ( dgvVideos.Columns[e.ColumnIndex].Name == "dgvcType")
             {
                 dgvVideos.Rows[e.RowIndex].Cells["dgvcStatus"].Value = "Fetching...";
-                dgvVideos.Update();
-                dgvVideos.Refresh();
-                var videos = dgvVideos.Rows[e.RowIndex].Cells["dgvcType"].Tag as Dictionary<string,string>;
-                string pageUrl = videos[dgvVideos.Rows[e.RowIndex].Cells["dgvcType"].Value as string];
-                var web = new HAP.HtmlWeb();
-                var doc = web.Load(pageUrl);
-
-                foreach (var node in doc.DocumentNode.SelectSingleNode("//body").ChildNodes)
-                {
-                    if (node.Name == "script" && node.InnerHtml.Contains("if(!FlashDetect.installed)"))
-                    {
-                        string searchString = "<source src=\"";
-                        var startIdx = node.InnerHtml.IndexOf(searchString);
-                        var endIdx = node.InnerHtml.IndexOf("\"", startIdx + searchString.Length + 1);
-                        var videoUrlLength = endIdx - startIdx - searchString.Length;
-                        string videoUrl = node.InnerHtml.Substring(startIdx + searchString.Length, videoUrlLength);
-                        dgvVideos.Rows[e.RowIndex].Cells["dgvcVideo"].Value = videoUrl;
-                        dgvVideos.Rows[e.RowIndex].Cells["dgvcStatus"].Value = "Ready!";
-                        dgvVideos.Rows[e.RowIndex].Cells["dgvcDownload"].Value = ">";
-                    }
-                }
+                //dgvVideos.Update();
+                //dgvVideos.Refresh();
+                _fetcherQueue.Enqueue(e.RowIndex);
             }
         }
 
@@ -179,6 +185,65 @@ namespace AnimeGet
                 dgvVideos.Rows[idx].Cells["dgvcStatus"].Value = "Done!";
                 dgvVideos.Rows[idx].Cells["dgvcDownload"].Value = ">";
                 currentlyDownloading--;
+            }
+        }
+
+        private void tmrDetector_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                tmrDetector.Stop();
+                if (!_detectorQueue.IsEmpty)
+                {
+                    int idx = 0;
+                    if (_detectorQueue.TryDequeue(out idx))
+                    {
+                        string episodeUrl = dgvVideos.Rows[idx].Cells["dgvcUrl"].Value.ToString();
+                        populateVideoTypes(idx, getVideoUrls(episodeUrl));
+                    }
+                }
+            }
+            finally
+            {
+                tmrDetector.Start();
+            }
+        }
+
+        private void tmrFetcher_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                tmrFetcher.Stop();
+                if (!_fetcherQueue.IsEmpty)
+                {
+                    int idx = 0;
+                    if (_fetcherQueue.TryDequeue(out idx))
+                    {
+                        var videos = dgvVideos.Rows[idx].Cells["dgvcType"].Tag as Dictionary<string, string>;
+                        string pageUrl = videos[dgvVideos.Rows[idx].Cells["dgvcType"].Value as string];
+                        var web = new HAP.HtmlWeb();
+                        var doc = web.Load(pageUrl);
+
+                        foreach (var node in doc.DocumentNode.SelectSingleNode("//body").ChildNodes)
+                        {
+                            if (node.Name == "script" && node.InnerHtml.Contains("if(!FlashDetect.installed)"))
+                            {
+                                string searchString = "<source src=\"";
+                                var startIdx = node.InnerHtml.IndexOf(searchString);
+                                var endIdx = node.InnerHtml.IndexOf("\"", startIdx + searchString.Length + 1);
+                                var videoUrlLength = endIdx - startIdx - searchString.Length;
+                                string videoUrl = node.InnerHtml.Substring(startIdx + searchString.Length, videoUrlLength);
+                                dgvVideos.Rows[idx].Cells["dgvcVideo"].Value = videoUrl;
+                                dgvVideos.Rows[idx].Cells["dgvcStatus"].Value = "Ready!";
+                                dgvVideos.Rows[idx].Cells["dgvcDownload"].Value = ">";
+                            }
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                tmrFetcher.Start();
             }
         }
 
@@ -220,5 +285,6 @@ namespace AnimeGet
                 tmrDownloader.Start();
             }
         }
+        
     }
 }
